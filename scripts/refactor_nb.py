@@ -14,6 +14,7 @@ NOTEBOOK_PATH = 'jasmin.ipynb'
 # Cell 6: Helper              — formatting_prompts_func
 # Cell 7: Data Pipeline       — Load & process dataset
 # Cell 8: Training Unit       — SFTTrainer setup (Colab only)
+# Cell 9: Chat UI             — Gradio ChatInterface for testing (Colab only)
 # =============================================================================
 
 CELLS = [
@@ -266,6 +267,58 @@ CELLS = [
             "    print('Cell 8 idle — training requires Colab GPU + Unsloth.')"
         ]
     },
+    # ── Cell 9: Chat UI (Colab only) ────────────────────────────────────
+    {
+        "cell_type": "code",
+        "execution_count": None,
+        "metadata": {},
+        "outputs": [],
+        "source": [
+            "# ── Cell 9: Chat UI (Colab Only) ────────────────────────────────────\n",
+            "# Interactive Gradio chat interface for testing the Jasmin persona.\n",
+            "# Generates a public shareable link on Colab.\n",
+            "\n",
+            "if IS_COLAB:\n",
+            "    import gradio as gr\n",
+            "\n",
+            "    FastLanguageModel.for_inference(model)\n",
+            "\n",
+            "    def chat_with_jasmin(user_message, history):\n",
+            "        messages = [{'role': 'system', 'content': JASMIN_SYSTEM}]\n",
+            "        for user_msg, assistant_msg in history:\n",
+            "            messages.append({'role': 'user', 'content': user_msg})\n",
+            "            messages.append({'role': 'assistant', 'content': assistant_msg})\n",
+            "        messages.append({'role': 'user', 'content': user_message})\n",
+            "\n",
+            "        inputs = tokenizer.apply_chat_template(\n",
+            "            messages,\n",
+            "            tokenize=True,\n",
+            "            add_generation_prompt=True,\n",
+            "            return_tensors='pt',\n",
+            "        ).to(model.device)\n",
+            "\n",
+            "        outputs = model.generate(\n",
+            "            input_ids=inputs,\n",
+            "            max_new_tokens=256,\n",
+            "            temperature=0.7,\n",
+            "            do_sample=True,\n",
+            "        )\n",
+            "\n",
+            "        response = tokenizer.decode(\n",
+            "            outputs[0][inputs.shape[-1]:],\n",
+            "            skip_special_tokens=True,\n",
+            "        )\n",
+            "        return response.strip()\n",
+            "\n",
+            "    gr.ChatInterface(\n",
+            "        fn=chat_with_jasmin,\n",
+            "        title='Jasmin Chat',\n",
+            "        description='Test the Jasmin persona interactively.',\n",
+            "    ).launch(share=True)\n",
+            "else:\n",
+            "    print('Cell 9 idle — Gradio chat UI requires Colab GPU + Unsloth.')"
+        ]
+    },
 ]
 
 # ── Construct notebook JSON ──────────────────────────────────────────────────
@@ -295,4 +348,4 @@ with open(NOTEBOOK_PATH, 'w') as f:
     json.dump(notebook_content, f, indent=2)
 
 print(f"Generated {NOTEBOOK_PATH} — {len(CELLS)} cells")
-print("Architecture: Bootstrap → Imports → Env → Config → Load → Persona → Helper → Data → Training")
+print("Architecture: Bootstrap → Imports → Env → Config → Load → Persona → Helper → Data → Training → Chat UI")
