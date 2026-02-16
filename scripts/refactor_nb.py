@@ -34,8 +34,6 @@ CELLS = [
             "if 'google.colab' in sys.modules:\n",
             "    print('Installing Colab dependencies...')\n",
             "    %pip install --upgrade --no-cache-dir unsloth unsloth_zoo\n",
-            "    %pip install --no-cache-dir --no-deps \"xformers<0.0.27\" \"trl<0.9.0\" peft accelerate bitsandbytes\n",
-            "    %pip install --no-cache-dir datasets triton\n",
             "    os._exit(00)  # Restart kernel\n",
             "else:\n",
             "    print('Local environment detected — skipping Colab installs.')"
